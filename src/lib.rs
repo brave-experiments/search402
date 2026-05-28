@@ -28,11 +28,28 @@ async fn health() -> impl IntoResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use axum::{body::Body, http::Request};
+    use tower::ServiceExt;
 
     #[test]
     fn banner_includes_name_and_version() {
         let banner = banner();
         assert!(banner.starts_with("bx402 v"));
         assert!(banner.contains(env!("CARGO_PKG_VERSION")));
+    }
+
+    #[tokio::test]
+    async fn health_returns_200() {
+        let response = app()
+            .oneshot(
+                Request::builder()
+                    .uri("/health")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
     }
 }
